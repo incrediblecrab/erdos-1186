@@ -1,9 +1,6 @@
 # refs/
 
-Primary sources for Erdős problem #1186. **Nothing in this directory is
-redistributed** — the PDFs are copyright their authors and publishers. Run
-`sh refs/fetch.sh` to populate it locally; the repository `.gitignore` keeps
-everything here out of git except this file and `fetch.sh`.
+Primary sources for Erdős problem #1186. **Nothing in this directory is redistributed** — the PDFs are copyright their authors and publishers. Run `sh refs/fetch.sh` to populate it locally; the repository `.gitignore` keeps everything here out of git except this file and `fetch.sh`.
 
 | Tag | Source | Used in NOTES.md for | Obtainable |
 |---|---|---|---|
@@ -20,7 +17,4 @@ everything here out of git except this file and `fetch.sh`.
 
 `fetch.sh` also saves `erdos1186.html`, the problem statement as posted.
 
-Two sources could not be obtained legitimately ([Wo10], [BCG10]). Every number
-taken from them is marked in NOTES.md with how it was corroborated — in both
-cases by two or more independent citing papers that agree on the value. Sci-Hub
-and similar were deliberately not used.
+Two sources could not be obtained legitimately ([Wo10], [BCG10]). Every number taken from them is marked in NOTES.md with how it was corroborated — in both cases by two or more independent citing papers that agree on the value. Sci-Hub and similar were deliberately not used.
