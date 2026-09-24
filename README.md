@@ -8,47 +8,53 @@
 
 **Objective.** Push the *upper* bounds down by explicit construction, certify every value in exact arithmetic, and reproduce the published numbers before claiming to beat them. No lower-bound work was attempted.
 
-**Inputs.** [LuPe12] ([arXiv:1107.2888](https://arxiv.org/abs/1107.2888)), [PRS08], [CCS07], and the erdosproblems.com entry for #1186. Run `refs/fetch.sh` — none are redistributed here. [Wo10] and [BCG10] are paywalled and were **not read**; their numbers appear only as quoted by [LuPe12].
+**Inputs.** [LuPe12] ([arXiv:1107.2888](https://arxiv.org/abs/1107.2888)), [PRS08], [CCS07], [RL12] ([DOI 10.37236/2363](https://doi.org/10.37236/2363)), [HHLM07] ([DOI 10.37236/925](https://doi.org/10.37236/925)), and the erdosproblems.com entry for #1186. Run `refs/fetch.sh` — none are redistributed here. [Wo10] and [BCG10] are paywalled and were **not read**; their numbers appear only as quoted by [LuPe12]. [SS78] and [KP08], the sources of the van der Waerden numbers $W(5;2)=178$ and $W(6;2)=1132$, were not read either; both values are taken from [RL12, Table 1].
 
-**Findings.** Comparing the optimal periodic colourings at $m=88$ and $m=132$ showed both reduce to one 44-bit base with a free coset of size 4. Generalising gives a **wildcard recursion**: if $\mathbb{Z}_b$ is coloured so every monochromatic $k$-AP lies inside one coset $F$ of size $f$, then
+**Findings.** Comparing the optimal periodic colourings at $m=88$ and $m=132$ showed both reduce to one 44-bit base with a free coset of size 4. Generalising gives a **wildcard recursion**, proved here as a theorem ([`NOTES.md`](NOTES.md) §3.1). A *base* is a colouring of $\mathbb{Z}_b$ with a coset $F$ of size $f$ such that every $k$-AP of nonzero difference that avoids $F$ is non-monochromatic, and every one that meets both $F$ and its complement is non-constant outside $F$. Every base gives
 
-$$m_k(\mathbb{Z}_{bt}) \le \frac{(b-f)+f^2 m_k(\mathbb{Z}_{ft})}{b^2},
-\qquad \delta_k \le \frac{1}{2(k-1)(b+f)} .$$
+$$m_k(\mathbb{Z}_{bt}) \le \frac{(b-f)+f^2 m_k(\mathbb{Z}_{ft})}{b^2}, \qquad \delta_k \le \frac{1}{2(k-1)(b+f)} .$$
 
-This reproduces **both** published constants exactly — $b=11,f=1\Rightarrow c_4\le1/72$ and $b=37,f=1\Rightarrow c_5\le1/304$ — which is the evidence that it measures the published quantity. Lu and Peng used $b=37$; the largest 5-AP-free modulus is actually **44**, and it carries a free coset of size **4**, not 1. That gives
+This reproduces **both** published constants exactly — $b=11,f=1\Rightarrow c_4\le1/72$ and $b=37,f=1\Rightarrow c_5\le1/304$ — which is the evidence that it measures the published quantity. Lu and Peng's two bases turn out to be the quadratic-residue (QR) colourings of $\mathbb{Z}_{11}$ and $\mathbb{Z}_{37}$, the colourings behind Rabung's lower bounds for van der Waerden numbers [RL12]. Every QR colouring that passes Rabung's test is a base, and so is every good zipped one [HHLM07] (NOTES §4). Together with one base found by search, at $k=5$, they give:
 
-$$\boxed{\ \delta_5 \le 13421/5153632 = 0.00260418\ }$$
+- $\delta_5 \le \mathbf{1/384}$, from a 5-AP-free $\mathbb{Z}_{44}$ base with $f=4$: a **20.83 % improvement** on Lu–Peng's $1/304$.
+- $\delta_6 \le \mathbf{1/2280}$, from the zipped QR colouring of $\mathbb{Z}_{226}$ ($f=2$), 2.6 times below this repo's previous $k=6$ value $1807/1590140$.
+- $\delta_7 \le \mathbf{1/7416}$ and $\delta_8 \le \mathbf{1/23016}$, from the QR colouring of $\mathbb{Z}_{617}$ and the zipped one of $\mathbb{Z}_{1642}$. No published bound was found for $k \ge 6$.
 
-certified at $m=5324$ — a **20.8 % improvement** on $1/304$. The same method on a 6-AP-free $\mathbb{Z}_{86}$ base ($f=2$) gives $\delta_6\le1807/1590140$. Over $\mathbb{F}_p$, block colourings improve $\tilde\delta_4$ by 2.8 % and $\tilde\delta_5$ by 10.6 %.
+Over $\mathbb{F}_p$, block colourings improve $\tilde\delta_4$ by 2.8 % and $\tilde\delta_5$ by 10.6 %.
 
-**$\delta_3$ and $\delta_4$ were not improved.** $\delta_3$ reproduces [PRS08] exactly. $\delta_4$ falls 0.45 % short of $1/72$, and §4 of [`NOTES.md`](NOTES.md) shows this family *provably cannot* reach it: the chain converges to $1/12$ strictly from above, matching [LuPe12, Conjecture 1].
+**The family is exhausted for $k \le 6$.** A base can be recoloured on $F$ to be cyclic AP-free, so $(k-1)b < W(k;2)$, the van der Waerden number, and an exact SAT scan up to that cap finds no base with larger $b+f$. So $1/72$, $1/384$ and $1/2280$ are the best this family gives for $k = 4, 5, 6$ (NOTES §5). This rests on solver UNSAT answers, which were not proof-checked, and on $W(5;2)$ and $W(6;2)$ as reported in [RL12].
+
+**$\delta_3$ and $\delta_4$ were not improved.** $\delta_3$ reproduces [PRS08] exactly. $\delta_4 \le 1/72$ is Lu and Peng's bound, reproduced exactly and now a theorem, and NOTES §6 shows this family cannot beat it, consistent with [LuPe12, Conjecture 1]. Bases for $k = 9, \dots, 12$ are in NOTES §4; they are checked by `src/verify_base.c` but are not in `results/claims.json`.
 
 ## Certified bounds
 
-All exact rationals, re-derived by `src/final_check.py` from the stored colourings.
+All exact rationals, re-derived by `src/final_check.py` from the stored colourings and bases.
 
 | | bound | decimal | where | vs. random | vs. published |
 |---|---|---|---|---|---|
 | $\delta_3$ | $117/2192$ | 0.05337591 | blocks, $m=548$ | 0.854× | $=117/2192$ [PRS08] — **not improved** |
-| $\delta_4$ | $2917/209088$ | 0.01395106 | two-scale, $m=66,B=4$ | 0.670× | $1/72$ [LuPe12] — **0.45 % short** |
-| $\delta_5$ | $\mathbf{13421/5153632}$ | 0.00260418 | wildcard chain, $m=5324$ | 0.333× | **beats $1/304$ by 20.83 %** |
-| $\delta_6$ | $\mathbf{1807/1590140}$ | 0.00113638 | wildcard chain, $m=3698$ | 0.364× | no published bound found |
+| $\delta_4$ | $1/72$ | 0.01388889 | recursion limit, QR base $\mathbb{Z}_{11}$, $f=1$ | 0.667× | $=1/72$ [LuPe12] — **not improved** |
+| $\delta_5$ | $\mathbf{1/384}$ | 0.00260417 | recursion limit, base $\mathbb{Z}_{44}$, $f=4$ | 0.333× | **beats $1/304$ by 20.83 %** |
+| $\delta_6$ | $\mathbf{1/2280}$ | 0.00043860 | recursion limit, zipped QR base $\mathbb{Z}_{226}$, $f=2$ | 0.140× | no published bound found |
+| $\delta_7$ | $\mathbf{1/7416}$ | 0.00013484 | recursion limit, QR base $\mathbb{Z}_{617}$, $f=1$ | 0.104× | no published bound found |
+| $\delta_8$ | $\mathbf{1/23016}$ | 0.00004345 | recursion limit, zipped QR base $\mathbb{Z}_{1642}$, $f=2$ | 0.078× | no published bound found |
 | $\tilde\delta_4$ | $\mathbf{159/2888}$ | 0.05505540 | $\mathbb{F}_p$ blocks, $m=152$ | 0.881× | **beats $17/300$ by 2.84 %** |
 | $\tilde\delta_5$ | $\mathbf{1283/51984}$ | 0.02468067 | $\mathbb{F}_p$ blocks, $m=114$ | 0.790× | **beats $3629/131424$ by 10.62 %** |
 | $\tilde\delta_6$ | $2821/216000$ | 0.01306019 | $\mathbb{F}_p$ blocks, $m=60$ | 0.836× | no published bound found |
 | $\tilde\delta_7$ | $1517/230640$ | 0.00657735 | $\mathbb{F}_p$ blocks, $m=62$ | 0.842× | no published bound found |
 
-The recursion's fixed points give $\delta_5\le1/384$ and $\delta_6\le1/880$, but the recursion is **verified at many levels, not proved in general**, so those limits are *conjectural* and the table reports only the finite certified values. For $k=5$ the two differ by $1.6\times10^{-8}$, so nothing rests on the conjectural form.
+The $\delta_4$ to $\delta_8$ rows are limits of the recursion theorem: each is an infimum over explicit colourings, and every finite level lies strictly above it. The gate re-verifies each base and re-counts the theorem's identity on explicit lifts. Finite levels counted directly sit just above the limits: $\delta_5 \le 13421/5153632$ at $m=5324$ is $1.6\times10^{-8}$ above $1/384$ and is gate-checked, and $\delta_6 \le 12657/28857940$ at $m=25538$ is $3.0\times10^{-10}$ above $1/2280$ (`results/verify_lift_k6_25538.log`, not gate-checked).
 
 ## How the numbers are trusted
 
 Certification is separated from search, and no self-reported score is accepted.
 
-- Every bound is recomputed from the colouring in exact `Fraction` arithmetic (`src/exact.py`). A stored value is never read as a result.
-- Each headline value is confirmed by code sharing nothing with the search: `src/verify_zm.c` (direct double loop over $\mathbb{Z}_m$, no weight table) and `src/verify_two.c` (brute force over $\{1,\dots,n\}$).
-- The periodic-to-integer step is measured, not assumed: the boundary term is $1/(2n)$, so (measured $-$ claimed) $\times n$ must stay flat at $\approx0.50$. For the $k=6$ record at $n=20000,60000,120000$ it is **0.504, 0.502, 0.502**.
-- Published values are reproduced first — five of them, including Lu–Peng's $B_{74}$ with its exact $d$-breakdown (74 APs at $d=0$, 72 at $d=37$).
-- The gate is tested against planted defects, not merely observed to pass. An unsupported claim and a one-bit-corrupted stored word both make it exit 1.
+- Every bound is recomputed in exact `Fraction` arithmetic (`src/exact.py`), and a stored value is never read as a result. A recursion limit is recomputed from its base's $b$ and $f$, after the base itself is re-verified.
+- Headline values are confirmed by code sharing nothing with the search: `src/verify_zm.c` (direct double loop over $\mathbb{Z}_m$, no weight table), `src/verify_two.c` (brute force over $\{1,\dots,n\}$), and `src/verify_base.c` (the two base conditions; it agrees with the Python check on all 21 cases of a planted cross-check).
+- The periodic-to-integer step is measured, not assumed: the boundary term is $1/(2n)$, so (measured $-$ claimed) $\times n$ must stay flat at $\approx0.50$. For the 6-AP-free $\mathbb{Z}_{226}$ word at $n=20000,60000,120000$ it is **0.506, 0.501, 0.501**.
+- Published values are reproduced first — six reproductions, including Lu–Peng's $B_{74}$ with its exact $d$-breakdown (74 APs at $d=0$, 72 at $d=37$) and the six two-colour lower bounds of [RL12, Table 1].
+- The gate is tested against planted defects, not merely observed to pass. Six defects each make it exit 1: two overclaims, a one-bit corruption of a stored word, and three corruptions of the $\mathbb{Z}_{226}$ base. `src/safesat.py --self-test` likewise fails when its symmetry group is replaced by random permutations (NOTES §10).
+- The SAT solvers' UNSAT answers were not proof-checked. They support only the statement that the family is exhausted; no bound depends on them. The hardest instance, $(221,13)$, was decided by one solver only (NOTES §8).
 
 ## Reproduce
 
@@ -65,13 +71,16 @@ python src/final_check.py          # re-derive every claim; exit 0 = pass
 | `src/bigm.py` | tiling-seeded search at large $m$ |
 | `src/cosetprobe.py` | finds the wildcard coset; exact safety test + positive control |
 | `src/chain.py` | builds and certifies one level of the recursion |
+| `src/rabung.c` | quadratic-residue and zipped colourings; reproduces [RL12, Table 1] |
+| `src/bases.py` | assembles and re-checks the stored bases |
 | `src/wildcard.py` | the $k=5$ restricted search |
-| `src/apfree.py` | AP-free moduli |
-| `src/verify_zm.c`, `src/verify_two.c`, `src/verify_zp.c` | independent C cross-checks |
+| `src/apfree.py` | SAT search for cyclic AP-free moduli |
+| `src/safesat.py` | exact SAT scan for bases, with symmetry breaking and a self-test |
+| `src/verify_zm.c`, `src/verify_two.c`, `src/verify_zp.c`, `src/verify_base.c` | independent C cross-checks |
 | `src/final_check.py` | re-derives every claim; exit 0 = pass |
 | `results/claims.json` | the asserted bounds, machine-checked |
 | `results/` | certified colourings and search logs |
-| `NOTES.md` | normalisation, reproductions, the recursion, negative results |
+| `NOTES.md` | normalisation, reproductions, the recursion theorem, the family's limits, negative results, validation |
 
 Read [`NOTES.md`](NOTES.md) for the derivation, the failure of the $k=4$ family, and the provenance caveats.
 

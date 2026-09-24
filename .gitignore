@@ -11,7 +11,9 @@ refs/*
 results/weights/
 
 # Built from the .c sources by scripts/reproduce.sh.
+src/rabung
 src/search
+src/verify_base
 src/verify_n
 src/verify_two
 src/verify_zm

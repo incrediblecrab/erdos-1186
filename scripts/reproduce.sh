@@ -8,9 +8,9 @@
 # Stages, in order:
 #   0  environment
 #   1  fetch third-party references          (never redistributed; see refs/)
-#   2  build the independent C brute forces
+#   2  build the independent C brute forces and the quadratic-residue generator
 #   3  validate the exact evaluator against closed forms and a second evaluator
-#   4  the wildcard chain (k=5, k=6) -- runs even under FAST
+#   4  the wildcard chain (k=5, k=6) and the bases (k=4..8) -- runs even under FAST
 #   5  reproduce published values, then run the searches
 #   6  final_check.py -- re-derives every claim; exit 0 = pass
 set -u
@@ -31,19 +31,21 @@ command -v cc >/dev/null || die "no C compiler"
 "$PY" -c 'import numpy, sympy; print("python", __import__("sys").version.split()[0],
       "numpy", numpy.__version__, "sympy", sympy.__version__)' || die "missing numpy/sympy"
 "$PY" -c 'import pysat' 2>/dev/null \
-  && echo "python-sat present (src/apfree.py enabled)" \
-  || echo "python-sat ABSENT -- src/apfree.py will be skipped (pip install python-sat)"
+  && echo "python-sat present (src/apfree.py, src/safesat.py and src/bases.py enabled)" \
+  || echo "python-sat ABSENT -- src/apfree.py, src/safesat.py and src/bases.py will be skipped (pip install python-sat)"
 
 say "1. fetch references"
 bash refs/fetch.sh || echo "  (some references are paywalled; see refs/README.md)"
 
-say "2. build the independent C brute forces"
-cc -O3 -o src/verify_zp  src/verify_zp.c  || die "verify_zp"
-cc -O3 -o src/verify_n   src/verify_n.c   || die "verify_n"
-cc -O3 -o src/verify_two src/verify_two.c || die "verify_two"
-cc -O3 -o src/verify_zm  src/verify_zm.c  || die "verify_zm"
-cc -O3 -o src/search     src/search.c -lm || die "search"
-echo "built: verify_zp verify_n verify_two verify_zm search"
+say "2. build the independent C brute forces and the quadratic-residue generator"
+cc -O3 -o src/verify_zp   src/verify_zp.c   || die "verify_zp"
+cc -O3 -o src/verify_n    src/verify_n.c    || die "verify_n"
+cc -O3 -o src/verify_two  src/verify_two.c  || die "verify_two"
+cc -O3 -o src/verify_zm   src/verify_zm.c   || die "verify_zm"
+cc -O3 -o src/verify_base src/verify_base.c || die "verify_base"
+cc -O3 -o src/rabung      src/rabung.c      || die "rabung"
+cc -O3 -o src/search      src/search.c -lm  || die "search"
+echo "built: verify_zp verify_n verify_two verify_zm verify_base rabung search"
 
 say "3. validate the exact evaluator"
 "$PY" src/final_check.py --fast --no-brute >/dev/null \
@@ -63,6 +65,12 @@ chain src/chain.py --k 5 --b 44 --f 4 --r 3 \
 chain src/chain.py --k 6 --b 86 --f 2 --r 33 \
     --store results/wildcard_k6_deep.json > results/chain_k6.log 2>&1 || die "k=6 chain"
 tail -4 results/chain_k5.log results/chain_k6.log
+
+# The bases behind the recursion limits (NOTES.md sections 3-5): quadratic-residue words from src/rabung plus B_44 and B_86 from results/zm_k*.json, each re-checked before it is written. The self-test confirms that symmetry breaking changes no SAT answer and that its comparison can see a changed one.
+if "$PY" -c 'import pysat' 2>/dev/null; then
+  "$PY" src/bases.py || die "bases"
+  "$PY" src/safesat.py --self-test || die "safesat.py self-test"
+fi
 
 if [ "$FAST" = "1" ]; then
   say "FAST=1 -- skipping the searches"
@@ -116,6 +124,20 @@ wait
 if "$PY" -c 'import pysat' 2>/dev/null; then
   run src/apfree.py 5 2-130 --budget 600 --store results/apfree_k5.json \
       > results/apfree_k5.log 2>&1
+  run src/apfree.py 6 87-240 --budget 3000000 --store results/apfree_k6.json \
+      > results/apfree_k6.log 2>&1
+  # Every (b, f) whose b + f beats the best base, up to the cap and for k <= 5 beyond it (NOTES.md section 5). --store merges on each write, so the k=6 runs must stay sequential. b=221 needs symmetry breaking; nothing else does.
+  run src/safesat.py 3 2-60 --above 4 --store results/safesat_k3.json \
+      > results/safesat_k3.log 2>&1
+  run src/safesat.py 4 2-150 --above 12 --store results/safesat_k4.json \
+      > results/safesat_k4.log 2>&1
+  run src/safesat.py 5 2-200 --above 48 --store results/safesat_k5.json \
+      > results/safesat_k5.log 2>&1
+  { run src/safesat.py 6 150-220 --above 228 --store results/safesat_k6.json
+    run src/safesat.py 6 222-226 --above 228 --store results/safesat_k6.json
+    run src/safesat.py 6 221 --above 228 --symbreak 24 --solver cadical195 \
+        --store results/safesat_k6.json
+  } > results/safesat_k6.log 2>&1
 fi
 
 say "6. final check"

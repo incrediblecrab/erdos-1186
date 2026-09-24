@@ -26,6 +26,11 @@ Checks, in order:
                                     must agree with src/exact.py
   G  AP-free certificates        -- every SAT model in results/apfree_*.json is
                                     re-checked by a plain loop
+  H  wildcard recursion bases    -- every base in results/safebase_*.json has
+                                    its coset re-tested by cosetprobe.safe_coset
+                                    and its word confirmed cyclic AP-free, and
+                                    the recursion identity is re-measured on
+                                    explicit lifts by src/verify_zm
 
 Usage:  python src/final_check.py [--fast] [--no-brute]
 """
@@ -81,12 +86,13 @@ RANDOM = {
 
 # Which problem each search family bounds.  zp_* bounds delta~_k over F_p;
 # the other three all bound delta_k over {1,...,n} and compete with each other.
-FAMILY = {"zp": "zp", "n": "n", "zm": "n", "two": "n"}
+FAMILY = {"zp": "zp", "n": "n", "zm": "n", "two": "n", "base": "n"}
 FAMILY_NAME = {
     "zp": "block colouring of F_p",
     "n": "block colouring of {1..n}",
     "zm": "periodic colouring mod m",
     "two": "two-scale colouring",
+    "base": "wildcard chain limit",
 }
 
 # The claims actually made in README.md and NOTES.md.  Every one is asserted
@@ -238,7 +244,37 @@ def normalise(fam, k, key, entry):
         return {"fam": fam, "k": k, "key": key, "word": entry["colour"],
                 "value": val, "bound": val, "m": entry["m"], "B": entry["B"],
                 "label": "m=%d B=%d" % (entry["m"], entry["B"])}
+    if fam == "base":
+        if not all(x in entry for x in ("b", "f", "r", "word")):
+            return None
+        b, f = entry["b"], entry["f"]
+        # the value is the recursion's limit 1/(b+f), proved in NOTES.md
+        # section 3.1 from the two conditions recertify() checks; the stored
+        # "bound" field is never read
+        return {"fam": fam, "k": k, "key": key, "word": entry["word"],
+                "b": b, "f": f, "r": entry["r"], "value": Fraction(1, b + f),
+                "bound": Fraction(1, 2 * (k - 1) * (b + f)),
+                "label": "b=%d f=%d" % (b, f)}
     return None
+
+
+def base_coset(rec):
+    b, f = rec["b"], rec["f"]
+    return {(rec["r"] + (b // f) * y) % b for y in range(f)}
+
+
+def base_violations(c, k, F):
+    """Progressions of Z_b with nonzero difference whose terms outside F are
+    all one colour: an H1 failure if no term is in F, an H2 failure otherwise.
+    Either kind breaks the recursion, so the base is valid iff this is 0."""
+    b = len(c)
+    bad = 0
+    for a in range(b):
+        for d in range(1, b):
+            out = {(a + j * d) % b for j in range(k)} - F
+            if out and len({c[x] for x in out}) == 1:
+                bad += 1
+    return bad
 
 
 def load_results():
@@ -260,7 +296,8 @@ def load_results():
         # wildcard_* is the restricted search inside the periodic family, so it
         # certifies the same quantity and is merged into zm.
         for pre, f in (("zp_", "zp"), ("n_", "n"), ("zm_", "zm"),
-                       ("two_", "two"), ("wildcard_", "zm")):
+                       ("two_", "two"), ("wildcard_", "zm"),
+                       ("safebase_", "base")):
             if base.startswith(pre):
                 fam = f
                 break
@@ -305,6 +342,13 @@ def recertify(rec):
         if len(c) != rec["m"] * rec["B"]:
             return None
         return exact.psi_two_scale(c, rec["m"], rec["B"], k)
+    if fam == "base":
+        b, f = rec["b"], rec["f"]
+        if len(c) != b or not (1 <= f < b) or b % f:
+            return None
+        if base_violations(c, k, base_coset(rec)):
+            return None
+        return Fraction(1, b + f)
     return None
 
 
@@ -319,7 +363,7 @@ def check_certification(ck, results, fast):
         for key, rec in items:
             val = recertify(rec)
             if val is None:
-                bad.append((key, "shape"))
+                bad.append((key, "H1/H2 or shape" if fam == "base" else "shape"))
             elif val != rec["value"]:
                 bad.append((key, f"{val} != {rec['value']}"))
             total += 1
@@ -394,6 +438,78 @@ def check_apfree(ck):
                  "" if not bad else str(bad[:3]))
 
 
+# ------------------------------------------------------------------ check H
+
+def zm_mono(word, k):
+    """Monochromatic (a, d) pairs of Z_m, d = 0 included, counted by
+    src/verify_zm -- a plain double loop sharing no code with this file."""
+    exe = os.path.join(HERE, "verify_zm")
+    if not os.path.exists(exe):
+        return None
+    out = subprocess.run([exe, str(k), "".join(map(str, word))],
+                         capture_output=True, text=True, timeout=1800)
+    for tok in out.stdout.split():
+        if tok.startswith("mono="):
+            return int(tok[5:])
+    return None
+
+
+def lift(c, f, r, h):
+    """Colour Z_{bt} by the base off the lift of F and by h on it."""
+    b = len(c)
+    g, t = b // f, len(h) // f
+    w = [c[x % b] for x in range(b * t)]
+    for u in range(f * t):
+        w[(r + g * u) % (b * t)] = h[u]
+    return w
+
+
+def check_bases(ck, results):
+    """The recursion limit is a theorem (NOTES.md section 3.1) given H1 and
+    H2, which check C re-verified.  Here H2 is re-tested by the older,
+    independently written cosetprobe.safe_coset, the stored word (colours on
+    F included) is confirmed cyclic k-AP-free by src/verify_zm, and the
+    recursion identity
+
+        #mono(Z_bt, lift) = (b - f) t^2 + #mono(Z_ft, h)
+
+    is re-measured at t = 2 and t = 3 by src/verify_zm, for a constant and a
+    non-constant inner colouring h."""
+    from cosetprobe import safe_coset
+    import random
+    print("\nH. wildcard recursion bases: coset safety and the recursion identity")
+    got = False
+    for (fam, k), db in sorted(results.items()):
+        if fam != "base":
+            continue
+        got = True
+        for key, rec in sorted(db.items(), key=lambda kv: kv[1]["b"]):
+            c, F = bits(rec["word"]), base_coset(rec)
+            b, f, r = rec["b"], rec["f"], rec["r"]
+            ok, nd = safe_coset(c, k, F)
+            ck.check(ok, f"k={k} b={b} f={f} r={r}: cosetprobe.safe_coset accepts F",
+                     f"{nd} dangerous progressions")
+            mono = zm_mono(c, k)
+            ck.check(mono == b, f"k={k} b={b} f={f}: stored word is cyclic {k}-AP-free",
+                     f"{mono} monochromatic pairs; the {b} with d=0 are unavoidable")
+            rng = random.Random(1186 * b + f)
+            mixed = [0] * (3 * f)
+            while len(set(mixed)) == 1:
+                mixed = [rng.randint(0, 1) for _ in range(3 * f)]
+            for t, name, h in ((2, "zeros", [0] * (2 * f)), (3, "random", mixed)):
+                lhs = zm_mono(lift(c, f, r, h), k)
+                inner = zm_mono(h, k)
+                if lhs is None or inner is None:
+                    ck.check(False, f"k={k} b={b}: verify_zm unavailable or failed")
+                    continue
+                want = (b - f) * t * t + inner
+                ck.check(lhs == want,
+                         f"k={k} b={b} f={f}: identity at t={t}, h={name}",
+                         f"{lhs} == {b - f}*{t}^2 + {inner}")
+    if not got:
+        print("      (none found)")
+
+
 # ------------------------------------------------------------------ check D
 
 
@@ -441,6 +557,8 @@ def brute_count(word, k, n, m=None, B=None, periodic=False):
 def check_brute(ck, results, p=60013, n=120000):
     print("\nD. independent brute force (no code shared with exact.py)")
     for (fam, k), db in sorted(results.items()):
+        if fam == "base":
+            continue                    # a limit, not one word: see check H
         key, rec = min(db.items(), key=lambda kv: kv[1]["bound"])
         want = float(rec["value"])
         if fam == "zp":
@@ -555,6 +673,7 @@ def main():
     check_certification(ck, results, args.fast)
     check_second_evaluator(ck, results, args.fast)
     check_apfree(ck)
+    check_bases(ck, results)
     if not args.no_brute:
         check_brute(ck, results)
     check_records(ck, results)

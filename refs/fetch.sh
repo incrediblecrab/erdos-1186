@@ -12,6 +12,10 @@
 #   [BCG10] Butler-Costello-Graham, Exp. Math. 19 (2010) 399-411.  No preprint
 #           was found on any author page.  DOI 10.1080/10586458.2010.10390631
 # Their numbers are quoted in NOTES.md with that provenance stated explicitly.
+#
+# Two more are cited but were not fetched or read; their values are taken from [RL12, Table 1]:
+#   [SS78]  Stevens-Shantaram, Math. Comp. 32 (1978) 635-636, W(5;2) = 178.  DOI 10.1090/S0025-5718-1978-0491468-X
+#   [KP08]  Kouril-Paul, Exp. Math. 17 (2008) 53-61, W(6;2) = 1132.  DOI 10.1080/10586458.2008.10129025
 set -e
 cd "$(dirname "$0")"
 
@@ -50,6 +54,12 @@ curl -sL "https://arxiv.org/pdf/2604.02115" -o yang_mao26.pdf
 # classes throughout.  See NOTES.md.
 curl -sL "https://webspace.maths.qmul.ac.uk/p.j.cameron/preprints/mono.pdf" \
   -o ccs07.pdf || echo "ccs07: author copy moved; see DOI 10.4171/RMI/499"
+
+# [RL12] Rabung, Lotts, "Improving the use of cyclic zippers in finding lower bounds for van der Waerden numbers", Electron. J. Combin. 19(2) (2012) #P35. Table 1 gives W(2,k) for k <= 12 from quadratic-residue colourings, which are the bases of NOTES.md section 4. Open access.
+curl -sL "https://www.combinatorics.org/ojs/index.php/eljc/article/download/v19i2p35/pdf/" -o rl12.pdf
+
+# [HHLM07] Herwig, Heule, van Lambalgen, van Maaren, "A new method to construct lower bounds for van der Waerden numbers", Electron. J. Combin. 14 (2007) #R6. The cyclic zipper behind the f = 2 bases. Open access.
+curl -sL "https://www.combinatorics.org/ojs/index.php/eljc/article/download/v14i1r6/pdf/" -o hhlm07.pdf
 
 # The problem statement itself.
 curl -sL "https://www.erdosproblems.com/1186" -o erdos1186.html

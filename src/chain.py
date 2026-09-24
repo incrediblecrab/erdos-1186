@@ -74,7 +74,7 @@ def main():
     print("       recursion predicts %s=%.10f   %s"
           % (pred, float(pred), "MATCH" if phi == pred else "MISMATCH"))
     print("       delta_%d <= %s = %.10f" % (a.k, psi, float(psi)))
-    print("       chain fixed point 1/(b+f) = %s -> delta_%d <= %s = %.10f (conjectural)"
+    print("       chain fixed point 1/(b+f) = %s -> delta_%d <= %s = %.10f (limit, NOTES.md section 3.1)"
           % (fixed, a.k, fixed / (2 * (a.k - 1)), float(fixed / (2 * (a.k - 1)))))
     assert phi == pred, "recursion and explicit construction disagree"
 
