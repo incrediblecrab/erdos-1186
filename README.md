@@ -1,16 +1,32 @@
-# Erdős #1186 — monochromatic $k$-APs in 2-colourings
+# erdos-1186
+
+This repository studies Erdős problem 1186, monochromatic $k$-term arithmetic progressions in 2-colourings, by certifying explicit upper-bound constructions. The problem is open and cannot be resolved with a finite computation; no lower-bound work was attempted here.
+
+**Objective:** push the *upper* bounds down by explicit construction, certify every value in exact arithmetic, and reproduce the published numbers before claiming to beat them.
+
+**Inputs:** the erdosproblems.com entry; [LuPe12], [PRS08], [CCS07], [RL12], [HHLM07] and other sources listed in [`refs/`](refs/README.md). Run `refs/fetch.sh`; none are redistributed here.
+
+**Files:**
+
+- [`NOTES.md`](NOTES.md): normalisation, reproductions, the recursion theorem, family limits, negative results, validation and provenance caveats
+- [`src/`](src/): search, certification, exact arithmetic and independent C cross-checks
+- [`scripts/reproduce.sh`](scripts/reproduce.sh): full and fast reproduction entry point
+- [`results/`](results/README.md): certified colourings, stored bases, search logs and `claims.json`
+- [`refs/`](refs/README.md): fetch script and source ledger
+
+**Try it:** `python3 src/final_check.py` re-derives every claim; `FAST=1 bash scripts/reproduce.sh` skips the long searches.
+
+## Problem statement
 
 > Let $\delta_k$ be such that in any $2$-colouring of $\{1,\ldots,n\}$ there exist at least $(\delta_k+o(1))n^2$ many monochromatic $k$-term arithmetic progressions. Give reasonable bounds (or even an asymptotic formula) for $\delta_k$.
 >
 > […] It is easier to study this quantity if we replace $\{1,\ldots,n\}$ with a finite field $\mathbb{F}_p$; let this analogue be denoted by $\tilde{\delta}_k$.
 
-**Status: open** — "this is open, and cannot be resolved with a finite computation." Not solved here. Erdős [Er80, p. 93]; quoted from [erdosproblems.com/1186](https://www.erdosproblems.com/1186) (see [Attribution](#attribution)).
+**Status: open** — "this is open, and cannot be resolved with a finite computation." Not solved here. Erdős [Er80, p. 93]; quoted from [erdosproblems.com](https://www.erdosproblems.com/1186) (see [Attribution](#attribution)).
 
-**Objective.** Push the *upper* bounds down by explicit construction, certify every value in exact arithmetic, and reproduce the published numbers before claiming to beat them. No lower-bound work was attempted.
+## Findings
 
-**Inputs.** [LuPe12] ([arXiv:1107.2888](https://arxiv.org/abs/1107.2888)), [PRS08], [CCS07], [RL12] ([DOI 10.37236/2363](https://doi.org/10.37236/2363)), [HHLM07] ([DOI 10.37236/925](https://doi.org/10.37236/925)), and the erdosproblems.com entry for #1186. Run `refs/fetch.sh` — none are redistributed here. [Wo10] and [BCG10] are paywalled and were **not read**; their numbers appear only as quoted by [LuPe12]. [SS78] and [KP08], the sources of the van der Waerden numbers $W(5;2)=178$ and $W(6;2)=1132$, were not read either; both values are taken from [RL12, Table 1].
-
-**Findings.** Comparing the optimal periodic colourings at $m=88$ and $m=132$ showed both reduce to one 44-bit base with a free coset of size 4. Generalising gives a **wildcard recursion**, proved here as a theorem ([`NOTES.md`](NOTES.md) §3.1). A *base* is a colouring of $\mathbb{Z}_b$ with a coset $F$ of size $f$ such that every $k$-AP of nonzero difference that avoids $F$ is non-monochromatic, and every one that meets both $F$ and its complement is non-constant outside $F$. Every base gives
+Comparing the optimal periodic colourings at $m=88$ and $m=132$ showed both reduce to one 44-bit base with a free coset of size 4. Generalising gives a **wildcard recursion**, proved here as a theorem ([`NOTES.md`](NOTES.md) §3.1). A *base* is a colouring of $\mathbb{Z}_b$ with a coset $F$ of size $f$ such that every $k$-AP of nonzero difference that avoids $F$ is non-monochromatic, and every one that meets both $F$ and its complement is non-constant outside $F$. Every base gives
 
 $$m_k(\mathbb{Z}_{bt}) \le \frac{(b-f)+f^2 m_k(\mathbb{Z}_{ft})}{b^2}, \qquad \delta_k \le \frac{1}{2(k-1)(b+f)} .$$
 
@@ -56,7 +72,7 @@ Certification is separated from search, and no self-reported score is accepted.
 - The gate is tested against planted defects, not merely observed to pass. Six defects each make it exit 1: two overclaims, a one-bit corruption of a stored word, and three corruptions of the $\mathbb{Z}_{226}$ base. `src/safesat.py --self-test` likewise fails when its symmetry group is replaced by random permutations (NOTES §10).
 - The SAT solvers' UNSAT answers were not proof-checked. They support only the statement that the family is exhausted; no bound depends on them. The hardest instance, $(221,13)$, was decided by one solver only (NOTES §8).
 
-## Reproduce
+## Try it
 
 ```bash
 bash scripts/reproduce.sh          # full pipeline
@@ -90,4 +106,6 @@ The question quoted at the top is from [erdosproblems.com/1186](https://www.erdo
 
 Short quotations from [LuPe12] in `NOTES.md` are cited in place and used to fix the normalisation and to record which published values were reproduced. No third-party paper or web page is redistributed here: `refs/fetch.sh` retrieves them and `refs/README.md` records which claim each one supports.
 
-The code, data, and prose in this repository are MIT licensed — see [`LICENSE`](LICENSE). That covers this work only; the quoted question and anything `refs/fetch.sh` downloads remain under their own terms.
+## License
+
+MIT, for this work only; the quoted problem is from [erdosproblems.com](https://www.erdosproblems.com/1186). See [`LICENSE`](LICENSE).
