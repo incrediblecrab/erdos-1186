@@ -655,6 +655,39 @@ def check_records(ck, results):
                      f"{float(bound):.10f} < {float(RANDOM[prob](k)):.10f}")
 
 
+def check_lrat(ck):
+    """Cheap consistency check for the external LRAT proof-checking ledger.
+
+    The expensive work is done by src/prove_unsat.py with CaDiCaL and
+    drat-trim's lrat-check.  This gate only checks that the ledger matches the
+    counts stated in the prose and that its validation tests have teeth."""
+    print("\nI. LRAT-checked UNSAT ledger")
+    path = os.path.join(ROOT, "results", "lrat_check.json")
+    if not os.path.exists(path):
+        print("      (results/lrat_check.json absent)")
+        return
+    data = json.load(open(path))
+    validation = data.get("validation", {})
+    ck.check(validation.get("correct_proof_accepted") is True,
+             "lrat-check accepts the validation proof")
+    ck.check(validation.get("corrupted_hint_or_clause_rejected") is True,
+             "lrat-check rejects a proof with a corrupted hint/clause")
+    ck.check(validation.get("dropped_clause_rejected") is True,
+             "lrat-check rejects the same proof after dropping a CNF clause")
+    expected = {
+        "3": {"accepted": 89, "timeout": 0, "rejected": 0, "solver_error": 0},
+        "4": {"accepted": 423, "timeout": 0, "rejected": 0, "solver_error": 0},
+        "5": {"accepted": 538, "timeout": 0, "rejected": 0, "solver_error": 0},
+        "6": {"accepted": 68, "timeout": 4, "rejected": 0, "solver_error": 0},
+    }
+    by_k = data.get("summary", {}).get("by_k", {})
+    for k, want in expected.items():
+        got = by_k.get(k, {})
+        ok = all(got.get(field) == value for field, value in want.items())
+        ck.check(ok, f"LRAT ledger k={k} counts match the prose",
+                 f"got {got}, want {want}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fast", action="store_true",
@@ -677,6 +710,7 @@ def main():
     if not args.no_brute:
         check_brute(ck, results)
     check_records(ck, results)
+    check_lrat(ck)
 
     print(f"\n{ck.passed} passed, {ck.failed} failed")
     return 1 if ck.failed else 0

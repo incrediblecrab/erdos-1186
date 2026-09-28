@@ -64,4 +64,9 @@ curl -sL "https://www.combinatorics.org/ojs/index.php/eljc/article/download/v14i
 # The problem statement itself.
 curl -sL "https://www.erdosproblems.com/1186" -o erdos1186.html
 
+# drat-trim's lrat-check, the external UNSAT proof checker used by src/prove_unsat.py (results/lrat_check.json). Pinned to the commit that run used.
+if [ ! -d drat-trim ]; then git clone -q https://github.com/marijnheule/drat-trim drat-trim; fi
+git -C drat-trim checkout -q 2e3b2dc0ecf938addbd779d42877b6ed69d9a985
+(cd drat-trim && clang drat-trim.c -std=c99 -O2 -o drat-trim && clang lrat-check.c -std=c99 -DLONGTYPE -O2 -o lrat-check)
+
 echo "fetched into $(pwd)"

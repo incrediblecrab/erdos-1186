@@ -22,3 +22,5 @@ Primary sources for Erdős problem #1186. **Nothing in this directory is redistr
 `fetch.sh` also saves `erdos1186.html`, the problem statement as posted.
 
 Two sources could not be obtained legitimately ([Wo10], [BCG10]). Every number taken from them is marked in NOTES.md with how it was corroborated — in both cases by two or more independent citing papers that agree on the value. Sci-Hub and similar were deliberately not used.
+
+For UNSAT proof checking, `src/prove_unsat.py` expects a local clone of Marijn Heule's `drat-trim` in `refs/drat-trim/`, which `fetch.sh` clones at the pinned commit and builds, and which is ignored with the rest of `refs/*`. The run recorded in `results/lrat_check.json` used commit `2e3b2dc0ecf938addbd779d42877b6ed69d9a985`, built with `clang drat-trim.c -std=c99 -O2 -o drat-trim` and `clang lrat-check.c -std=c99 -DLONGTYPE -O2 -o lrat-check`.

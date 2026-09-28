@@ -120,15 +120,16 @@ def lex_leader(cnf, var, free, perms, L):
     return top
 
 
-def decide(k, b, f, conf_budget=0, symbreak=0, solver="cadical153", perms=None):
-    """Return (status, word); status in {'SAT', 'UNSAT', 'UNKNOWN', 'FORCED'}.
+def encode_cnf(k, b, f, symbreak=0, perms=None):
+    """Return the SAT encoding for bases as (cnf, free).
 
-    FORCED means infeasible before solving: some progression has exactly one
-    term outside F, and a single term is always constant.  perms overrides the
-    symmetry group; only self_test() uses it, to plant a non-symmetry."""
+    The clauses are exactly the ones used by decide(): for every outside-term
+    set O, at least one colour 0 and at least one colour 1, plus the colour-swap
+    unit clause.  If symbreak is nonzero, add the same lex-leader clauses that
+    decide() uses.  Return (None, None) for FORCED instances."""
     sets = outside_sets(b, f, k)
     if sets is None:
-        return "FORCED", None
+        return None, None
     F = subgroup(b, f)
     free = [x for x in range(b) if x not in F]
     var = {x: i + 1 for i, x in enumerate(free)}
@@ -141,6 +142,20 @@ def decide(k, b, f, conf_budget=0, symbreak=0, solver="cadical153", perms=None):
     if symbreak:
         lex_leader(cnf, var, free,
                    symmetry_maps(b, f) if perms is None else perms, symbreak)
+    return cnf, free
+
+
+def decide(k, b, f, conf_budget=0, symbreak=0, solver="cadical153", perms=None):
+    """Return (status, word); status in {'SAT', 'UNSAT', 'UNKNOWN', 'FORCED'}.
+
+    FORCED means infeasible before solving: some progression has exactly one
+    term outside F, and a single term is always constant.  perms overrides the
+    symmetry group; only self_test() uses it, to plant a non-symmetry."""
+    cnf, free = encode_cnf(k, b, f, symbreak, perms)
+    if cnf is None:
+        return "FORCED", None
+    F = subgroup(b, f)
+    var = {x: i + 1 for i, x in enumerate(free)}
     with Solver(name=solver, bootstrap_with=cnf) as s:
         if conf_budget > 0:
             s.conf_budget(conf_budget)

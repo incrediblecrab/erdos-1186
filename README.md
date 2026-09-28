@@ -26,7 +26,7 @@ This repository studies Erdős problem 1186, monochromatic $k$-term arithmetic p
 
 ## Findings
 
-Comparing the optimal periodic colourings at $m=88$ and $m=132$ showed both reduce to one 44-bit base with a free coset of size 4. Generalising gives a **wildcard recursion**, proved here as a theorem ([`NOTES.md`](NOTES.md) §3.1). A *base* is a colouring of $\mathbb{Z}_b$ with a coset $F$ of size $f$ such that every $k$-AP of nonzero difference that avoids $F$ is non-monochromatic, and every one that meets both $F$ and its complement is non-constant outside $F$. Every base gives
+Comparing the optimal periodic colourings at $m=88$ and $m=132$ showed both reduce to one 44-bit base with a free coset of size 4. Generalising gives a **wildcard recursion**, proved here as a theorem ([`NOTES.md`](NOTES.md) §3.1). A *base* is a colouring of $\mathbb{Z}_b$ with a proper coset $F$ of size $f<b$ such that every $k$-AP of nonzero difference that avoids $F$ is non-monochromatic, and every one that meets both $F$ and its complement is non-constant outside $F$. Every base gives
 
 $$m_k(\mathbb{Z}_{bt}) \le \frac{(b-f)+f^2 m_k(\mathbb{Z}_{ft})}{b^2}, \qquad \delta_k \le \frac{1}{2(k-1)(b+f)} .$$
 
@@ -38,7 +38,7 @@ This reproduces **both** published constants exactly — $b=11,f=1\Rightarrow c_
 
 Over $\mathbb{F}_p$, block colourings improve $\tilde\delta_4$ by 2.8 % and $\tilde\delta_5$ by 10.6 %.
 
-**The family is exhausted for $k \le 6$.** A base can be recoloured on $F$ to be cyclic AP-free, so $(k-1)b < W(k;2)$, the van der Waerden number, and an exact SAT scan up to that cap finds no base with larger $b+f$. So $1/72$, $1/384$ and $1/2280$ are the best this family gives for $k = 4, 5, 6$ (NOTES §5). This rests on solver UNSAT answers, which were not proof-checked, and on $W(5;2)$ and $W(6;2)$ as reported in [RL12].
+**The family is exhausted for $k \le 6$, subject to the remaining SAT caveat.** A base can be recoloured on $F$ to be cyclic AP-free, so $(k-1)b < W(k;2)$, the van der Waerden number, and an exact SAT scan up to that cap finds no base with larger $b+f$. So $1/72$, $1/384$ and $1/2280$ are the best this family gives for $k = 4, 5, 6$ (NOTES §5). The UNSAT answers are now LRAT-checked by `lrat-check` for every $k \le 5$ scan instance and for 68 of the 72 $k=6$ UNSAT instances; the four remaining $k=6$ instances are $(203,29)$, $(217,31)$, and the two symmetry-broken $b=221$ cases $(221,13)$ and $(221,17)$. The cap still uses $W(5;2)$ and $W(6;2)$ as reported in [RL12].
 
 **$\delta_3$ and $\delta_4$ were not improved.** $\delta_3$ reproduces [PRS08] exactly. $\delta_4 \le 1/72$ is Lu and Peng's bound, reproduced exactly and now a theorem, and NOTES §6 shows this family cannot beat it, consistent with [LuPe12, Conjecture 1]. Bases for $k = 9, \dots, 12$ are in NOTES §4; they are checked by `src/verify_base.c` but are not in `results/claims.json`.
 
@@ -70,7 +70,7 @@ Certification is separated from search, and no self-reported score is accepted.
 - The periodic-to-integer step is measured, not assumed: the boundary term is $1/(2n)$, so (measured $-$ claimed) $\times n$ must stay flat at $\approx0.50$. For the 6-AP-free $\mathbb{Z}_{226}$ word at $n=20000,60000,120000$ it is **0.506, 0.501, 0.501**.
 - Published values are reproduced first — six reproductions, including Lu–Peng's $B_{74}$ with its exact $d$-breakdown (74 APs at $d=0$, 72 at $d=37$) and the six two-colour lower bounds of [RL12, Table 1].
 - The gate is tested against planted defects, not merely observed to pass. Six defects each make it exit 1: two overclaims, a one-bit corruption of a stored word, and three corruptions of the $\mathbb{Z}_{226}$ base. `src/safesat.py --self-test` likewise fails when its symmetry group is replaced by random permutations (NOTES §10).
-- The SAT solvers' UNSAT answers were not proof-checked. They support only the statement that the family is exhausted; no bound depends on them. The hardest instance, $(221,13)$, was decided by one solver only (NOTES §8).
+- The SAT solvers' UNSAT answers support only the statement that the family is exhausted; no bound depends on them. `src/prove_unsat.py` rebuilds the CNFs with `safesat.encode_cnf`, runs Homebrew CaDiCaL 3.0.1 with LRAT output, and checks with `lrat-check` from `drat-trim` commit `2e3b2dc0ecf938addbd779d42877b6ed69d9a985`. `results/lrat_check.json` records 1118 accepted proofs and 4 timeouts: all UNSAT instances for $k=3,4,5$ are checked, and $k=6$ has 68 checked and 4 unchecked. The two $b=221$ cases use symmetry-breaking clauses; LRAT checks the encoded CNF, while soundness of those extra clauses rests on the symmetry argument in NOTES §5.
 
 ## Try it
 
