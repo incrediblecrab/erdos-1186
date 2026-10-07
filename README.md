@@ -12,6 +12,7 @@ This repository studies Erdős problem 1186, monochromatic $k$-term arithmetic p
 - [`src/`](src/): search, certification, exact arithmetic and independent C cross-checks
 - [`scripts/reproduce.sh`](scripts/reproduce.sh): full and fast reproduction entry point
 - [`results/`](results/README.md): certified colourings, stored bases, search logs and `claims.json`
+- [`src/openai_transfer.py`](src/openai_transfer.py) and [`results/openai-transfer.json`](results/openai-transfer.json): the October release's digit-product interface and a checked obstruction to automatic wildcard transfer
 - [`refs/`](refs/README.md): fetch script and source ledger
 
 **Try it:** `python3 src/final_check.py` re-derives every claim; `FAST=1 bash scripts/reproduce.sh` skips the long searches.
@@ -23,6 +24,20 @@ This repository studies Erdős problem 1186, monochromatic $k$-term arithmetic p
 > […] It is easier to study this quantity if we replace $\{1,\ldots,n\}$ with a finite field $\mathbb{F}_p$; let this analogue be denoted by $\tilde{\delta}_k$.
 
 **Status: open** — "this is open, and cannot be resolved with a finite computation." Not solved here. Erdős [Er80, p. 93]; quoted from [erdosproblems.com](https://www.erdosproblems.com/1186) (see [Attribution](#attribution)).
+
+## October 2026 transfer check
+
+OpenAI's [family 160](https://github.com/openai/math/blob/adc7f1241b42e322a6451854ab7e4b4c146bf78a/lean/docs/160.md) claims superexponential van der Waerden bounds. Its [digit-product proposition](https://github.com/openai/math/blob/adc7f1241b42e322a6451854ab7e4b4c146bf78a/preprints/Quantitative-Superexponential-Bounds-for-van-der-Waerden-Numbers-September-23-2026/build/sections/07-transfers.tex) takes a cyclic progression-free coloring and produces larger interval colorings. That input property is weaker than the freely recolorable proper-coset property required by this repository's wildcard recursion.
+
+`src/openai_transfer.py` checks the distinction with the cyclic three-term-progression-free word `0011` on `Z/4Z`. Its digit products pass the finite interval checks, but all proper cosets fail the existing `cosetprobe.safe_coset` checker. The known quadratic-residue wildcard base on `Z/11Z` remains a positive control. The exact progression counts and rejected cosets are in `results/openai-transfer.json`.
+
+This is a negative result about an automatic transfer, not a refutation of OpenAI's construction. A new cyclic coloring must satisfy the extra wildcard interface before it can improve the bounds below. No bound was changed, no Lean development was duplicated, and the release's asymptotic threshold is not treated as an explicit construction at the small lengths studied here.
+
+```bash
+python3 src/openai_transfer.py --output results/openai-transfer.json
+python3 src/openai_transfer.py --plant coloring   # must print FAIL and exit 1
+python3 src/openai_transfer.py --plant interface  # must print FAIL and exit 1
+```
 
 ## Findings
 

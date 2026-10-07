@@ -1,0 +1,129 @@
+{
+  "source": "https://github.com/openai/math/blob/adc7f1241b42e322a6451854ab7e4b4c146bf78a/preprints/Quantitative-Superexponential-Bounds-for-van-der-Waerden-Numbers-September-23-2026/build/sections/07-transfers.tex",
+  "scope": "Finite checks of the digit-product interface and a counterexample to an automatic wildcard transfer. No new asymptotic bound or improvement of delta_k.",
+  "plant": null,
+  "base": [
+    0,
+    0,
+    1,
+    1
+  ],
+  "k": 3,
+  "cyclic": {
+    "progressions_tested": 12,
+    "monochromatic": 0
+  },
+  "proper_cosets": [
+    {
+      "free_coset": [
+        0
+      ],
+      "safe": false,
+      "dangerous_progressions": 4
+    },
+    {
+      "free_coset": [
+        1
+      ],
+      "safe": false,
+      "dangerous_progressions": 4
+    },
+    {
+      "free_coset": [
+        2
+      ],
+      "safe": false,
+      "dangerous_progressions": 4
+    },
+    {
+      "free_coset": [
+        3
+      ],
+      "safe": false,
+      "dangerous_progressions": 4
+    },
+    {
+      "free_coset": [
+        0,
+        2
+      ],
+      "safe": false,
+      "dangerous_progressions": 4
+    },
+    {
+      "free_coset": [
+        1,
+        3
+      ],
+      "safe": false,
+      "dangerous_progressions": 4
+    }
+  ],
+  "digit_products": [
+    {
+      "digits": 1,
+      "length": 4,
+      "colors": 2,
+      "progressions_tested": 2,
+      "monochromatic": 0
+    },
+    {
+      "digits": 2,
+      "length": 16,
+      "colors": 4,
+      "progressions_tested": 56,
+      "monochromatic": 0
+    },
+    {
+      "digits": 3,
+      "length": 64,
+      "colors": 8,
+      "progressions_tested": 992,
+      "monochromatic": 0
+    }
+  ],
+  "positive_control": {
+    "base": [
+      0,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    "k": 4,
+    "free_coset": [
+      0
+    ],
+    "cyclic": {
+      "progressions_tested": 110,
+      "monochromatic": 0
+    },
+    "safe": true,
+    "dangerous_progressions": 0
+  },
+  "checks": [
+    {
+      "name": "small base is cyclic AP-free",
+      "passed": true
+    },
+    {
+      "name": "digit products are interval AP-free",
+      "passed": true
+    },
+    {
+      "name": "cyclic AP-freeness does not imply a safe proper wildcard coset",
+      "passed": true
+    },
+    {
+      "name": "known quadratic-residue wildcard base still passes",
+      "passed": true
+    }
+  ],
+  "passed": true
+}
