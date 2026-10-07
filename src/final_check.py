@@ -31,6 +31,7 @@ Checks, in order:
                                     and its word confirmed cyclic AP-free, and
                                     the recursion identity is re-measured on
                                     explicit lifts by src/verify_zm
+  J  OpenAI transfer             -- exact periodic counts, stored transfer data, and the core-only Lean bridge; not OpenAI's upstream theorem
 
 Usage:  python src/final_check.py [--fast] [--no-brute]
 """
@@ -688,6 +689,25 @@ def check_lrat(ck):
                  f"got {got}, want {want}")
 
 
+def check_openai_transfer(ck):
+    from openai_transfer import check
+
+    print("\nJ. cyclic-to-periodic transfer")
+    current = check()
+    with open(os.path.join(ROOT, "results", "openai-transfer.json")) as stream:
+        stored = json.load(stream)
+    ck.check(current == stored, "stored transfer artifact matches a fresh exact run")
+    for item in current["checks"]:
+        ck.check(item["passed"], item["name"])
+    proof = subprocess.run(
+        [sys.executable, "-B", os.path.join(HERE, "check_periodic_lean.py"), "--check"],
+        capture_output=True, text=True, timeout=480,
+    )
+    ck.check(proof.returncode == 0, "core-only Lean transfer replays and matches its recorded result",
+             "" if proof.returncode == 0 else proof.stdout + proof.stderr)
+    print("      The superexponential consequence remains conditional on the cited upstream cyclic theorem.")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fast", action="store_true",
@@ -711,6 +731,7 @@ def main():
         check_brute(ck, results)
     check_records(ck, results)
     check_lrat(ck)
+    check_openai_transfer(ck)
 
     print(f"\n{ck.passed} passed, {ck.failed} failed")
     return 1 if ck.failed else 0

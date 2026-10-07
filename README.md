@@ -13,6 +13,7 @@ This repository studies Erdős problem 1186, monochromatic $k$-term arithmetic p
 - [`scripts/reproduce.sh`](scripts/reproduce.sh): full and fast reproduction entry point
 - [`results/`](results/README.md): certified colourings, stored bases, search logs and `claims.json`
 - [`src/openai_transfer.py`](src/openai_transfer.py) and [`results/openai-transfer.json`](results/openai-transfer.json): the October release's digit-product interface and a checked obstruction to automatic wildcard transfer
+- [`src/PeriodicTransfer.lean`](src/PeriodicTransfer.lean) and [`src/check_periodic_lean.py`](src/check_periodic_lean.py): a core-only formal proof of the direct periodic bridge, checked with the existing shared verifier components and no Mathlib installation
 - [`refs/`](refs/README.md): fetch script and source ledger
 
 **Try it:** `python3 src/final_check.py` re-derives every claim; `FAST=1 bash scripts/reproduce.sh` skips the long searches.
@@ -31,13 +32,28 @@ OpenAI's [family 160](https://github.com/openai/math/blob/adc7f1241b42e322a64518
 
 `src/openai_transfer.py` checks the distinction with the cyclic three-term-progression-free word `0011` on `Z/4Z`. Its digit products pass the finite interval checks, but all proper cosets fail the existing `cosetprobe.safe_coset` checker. The known quadratic-residue wildcard base on `Z/11Z` remains a positive control. The exact progression counts and rejected cosets are in `results/openai-transfer.json`.
 
-This is a negative result about an automatic transfer, not a refutation of OpenAI's construction. A new cyclic coloring must satisfy the extra wildcard interface before it can improve the bounds below. No bound was changed, no Lean development was duplicated, and the release's asymptotic threshold is not treated as an explicit construction at the small lengths studied here.
+This is a negative result about automatic wildcard transfer, not a refutation of OpenAI's construction. It does not block the simpler periodic construction already used in this repository. The follow-up below establishes that route; the release's asymptotic threshold is not treated as an explicit construction at the small lengths studied here.
 
 ```bash
 python3 src/openai_transfer.py --output results/openai-transfer.json
 python3 src/openai_transfer.py --plant coloring   # must print FAIL and exit 1
 python3 src/openai_transfer.py --plant interface  # must print FAIL and exit 1
 ```
+
+### Direct periodic transfer and a conditional asymptotic bound
+
+For any cyclic $k$-AP-free two-coloring of modulus $m$, its periodic extension has an increasing monochromatic progression exactly when its difference is divisible by $m$. [`PeriodicTransfer.lean`](src/PeriodicTransfer.lean) proves this equivalence and a nonvacuous example using only Lean's `Std`. The existing shared Erdős axiom probe and an independent kernel replay accept its declarations; [`results/periodic-lean.json`](results/periodic-lean.json) records the source and verifier hashes and the existing toolchain used. No `.lake` directory, Mathlib build, or new toolchain is needed.
+
+The exact finite count, including difference zero as the existing computational gate does, is derived in [the periodic-transfer argument](PERIODIC-TRANSFER.md). It recovers the known upper bound $\delta_k\le1/(2(k-1)m)$ without a safe coset. Applying this to the [published cyclic theorem](https://github.com/openai/math/blob/adc7f1241b42e322a6451854ab7e4b4c146bf78a/preprints/Quantitative-Superexponential-Bounds-for-van-der-Waerden-Numbers-September-23-2026/build/sections/06-perturbation.tex) gives, **conditional on that theorem**, $\delta_k\le1/(2(k-1)k^{k/100000})$ for all sufficiently large $k$, hence $\delta_k^{1/k}\to0$.
+
+The local bridge is checked; OpenAI's large-coloring theorem is not independently verified here. The selected Comparator challenge states an interval van der Waerden bound, which alone is not the cyclic premise used in this deduction. No explicit threshold, improved small-$k$ record, asymptotic equality, or priority claim is established. The earlier safe-coset counterexample remains valid.
+
+```bash
+python3 -B -m unittest discover -s src -p 'test_openai_transfer.py' -v
+python3 -B src/check_periodic_lean.py --check
+```
+
+The Lean checker reuses `../formal/scripts/verify_lean.py` and its toolchain pin, whose hashes are recorded; it refuses to install a missing toolchain. Its `--plant sorry`, `--plant axiom`, and `--plant claim` cases must fail. The numerical transfer's additional `--plant degenerate` and `--plant normalization` cases exercise the zero-difference convention and the factor of two.
 
 ## Findings
 

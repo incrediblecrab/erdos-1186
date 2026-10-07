@@ -4,7 +4,7 @@ Technical record: normalisation, what was reproduced from the literature, the co
 
 ## 1. The problem and the normalisation
 
-Erdős [Er80] asks for the least $\delta_k$ such that every 2-colouring of $\{1,\dots,n\}$ contains at least $(\delta_k+o(1))n^2$ monochromatic $k$-APs, and for the analogous $\tilde\delta_k$ over $\mathbb{F}_p$. Only upper bounds are attacked here: an explicit colouring with few monochromatic $k$-APs bounds $\delta_k$ from above. **No lower-bound work was attempted.**
+Erdős [Er80] asks for the optimal guaranteed coefficient $\delta_k$ such that every 2-colouring of $\{1,\dots,n\}$ contains at least $(\delta_k+o(1))n^2$ monochromatic $k$-APs, and for the analogous $\tilde\delta_k$ over $\mathbb{F}_p$. This is the largest such guaranteed coefficient, not the least; that wording is corrected here on October 7, 2026 against [LuPe12, eq. (10)]. Only upper bounds are attacked here: an explicit colouring with few monochromatic $k$-APs bounds $\delta_k$ from above. **No lower-bound work was attempted.**
 
 Getting the normalisation right is the whole game, because a bound that looks like an improvement is usually a different quantity. Lu and Peng [LuPe12, eq. (10)] define
 
@@ -14,9 +14,11 @@ and state plainly, of their $m_k$,
 
 > "Here we allow $k$-APs to be degenerated"
 
-so $m_k$ counts **ordered pairs** $(a,b)$ with $a+jb$ monochromatic for $j<k$, including $b=0$. This repo's $\Phi_k$ is exactly their $m_k$. Hence
+so the cyclic normalization counts **ordered pairs** $(a,b)$ with $a+jb$ monochromatic for $j<k$, including $b=0$. This repo's $\Phi_k$ uses that normalization for a particular construction, rather than taking the minimum over all colorings. The construction therefore gives upper bounds:
 
-$$\delta_k = \Phi^{\mathbb{Z}_m}_k/(2(k-1)), \qquad \tilde\delta_k = \Phi_k/2 .$$
+$$\delta_k \le \Phi^{\mathbb{Z}_m}_k/(2(k-1)), \qquad \tilde\delta_k \le \Phi_k/2 .$$
+
+These inequalities correct the former equal signs; an arbitrary coloring's value is not the optimum. No stored numerical bound changes.
 
 The $1/(2(k-1))$ is the area of $\{x,t\ge0,\ x+(k-1)t\le1\}$, the density of $k$-APs in $\{1,\dots,n\}$; the $/2$ over $\mathbb{F}_p$ is Wolf's unoriented convention. A random colouring gives $\delta_k\le1/((k-1)2^k)$ and $\tilde\delta_k\le2^{-k}$.
 
